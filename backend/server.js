@@ -101,4 +101,62 @@ app.delete('/api/user/:username', async (req, res) => {
   }
 });
 
+const { exec } = require('child_process');
+
+// Статус сервисов (проверка, запущены ли)
+app.get('/api/status', (req, res) => {
+  // Проверка бэка (всегда онлайн, если запрос дошёл)
+  const backendStatus = 'online';
+  // Проверка фронта (пинг на порт 5173, но на сервере используй curl)
+  exec('curl -s http://localhost:5173', (err) => {
+    const frontendStatus = err ? 'offline' : 'online';
+    res.json({ backend: backendStatus, frontend: frontendStatus });
+  });
+});
+
+// Вкл/выкл (тестово, через shell; осторожно!)
+app.post('/api/control', (req, res) => {
+  const { service, action } = req.body; // service: 'backend' или 'frontend', action: 'start' или 'stop'
+  let cmd;
+  if (service === 'backend') {
+    cmd = action === 'start' ? 'node server.js &' : 'pkill -f "node server.js"'; // & для фона
+  } else if (service === 'frontend') {
+    cmd = action === 'start' ? 'cd frontend && npm run dev -- --host &' : 'pkill -f "vite"';
+  } else {
+    return res.status(400).json({ error: 'Invalid service' });
+  }
+  exec(cmd, (err, stdout, stderr) => {
+    if (err) return res.status(500).json({ error: stderr });
+    res.json({ message: `${service} ${action}ed` });
+  });
+});const { exec } = require('child_process');
+
+// Статус сервисов (проверка, запущены ли)
+app.get('/api/status', (req, res) => {
+  // Проверка бэка (всегда онлайн, если запрос дошёл)
+  const backendStatus = 'online';
+  // Проверка фронта (пинг на порт 5173, но на сервере используй curl)
+  exec('curl -s http://localhost:5173', (err) => {
+    const frontendStatus = err ? 'offline' : 'online';
+    res.json({ backend: backendStatus, frontend: frontendStatus });
+  });
+});
+
+// Вкл/выкл (тестово, через shell; осторожно!)
+app.post('/api/control', (req, res) => {
+  const { service, action } = req.body; // service: 'backend' или 'frontend', action: 'start' или 'stop'
+  let cmd;
+  if (service === 'backend') {
+    cmd = action === 'start' ? 'node server.js &' : 'pkill -f "node server.js"'; // & для фона
+  } else if (service === 'frontend') {
+    cmd = action === 'start' ? 'cd frontend && npm run dev -- --host &' : 'pkill -f "vite"';
+  } else {
+    return res.status(400).json({ error: 'Invalid service' });
+  }
+  exec(cmd, (err, stdout, stderr) => {
+    if (err) return res.status(500).json({ error: stderr });
+    res.json({ message: `${service} ${action}ed` });
+  });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
