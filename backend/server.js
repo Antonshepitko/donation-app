@@ -4,28 +4,20 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { exec } = require('child_process');
+const http = require('http');
+const io = require('socket.io');
 
 const app = express();
-const http = require('http');
 const server = http.createServer(app);
-const io = require('socket.io')(server, {
+const socketIo = io(server, {
   cors: { origin: '*' } // Для теста
 });
 
-io.on('connection', (socket) => {
-  console.log('Client connected');
-});
-
-// В роуте добавления доната (/api/donate), после await donation.save():
-io.emit('newDonation', donation); // Отправка события всем клиентам
-
-// Замени app.listen на server.listen:
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = 'd7ae7574ce458242d8167e71db02a043e704ac3e0408f1313047d9d441f4ecb794c657fb3f33323bb0901c56d3a973e150a6ac797c211f18061a81e75aa564ee'; // Замени на свой секрет (генерируй рандомный, например, через онлайн-генератор)
+const JWT_SECRET = 'your_jwt_secret_key'; // Замени на свой
 
-// Подключи MongoDB (используй credentials из Docker)
-mongoose.connect('mongodb://admin:prefectdinorah@localhost:27017/donationdb?authSource=admin', {
+mongoose.connect('mongodb://admin:yourstrongpassword@localhost:27017/donationdb?authSource=admin', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => console.log('MongoDB connected')).catch(err => console.log(err));
@@ -102,9 +94,23 @@ app.post('/api/donate', async (req, res) => {
   
   const donation = new Donation({ streamer, donorName, amount, currency, message });
   await donation.save();
+  socketIo.emit('newDonation', donation); // Теперь здесь, где donation определена
   res.status(201).json({ message: 'Donation added' });
 });
-// Временный роут удаления пользователя по имени (незащищённый)
+
+// Удаление пользователя (защищено)
+app.delete('/api/user', authMiddleware, async (req, res) => {
+  try {
+    const deleted = await User.findOneAndDelete({ username: req.user.username });
+    if (!deleted) return res.status(404).json({ error: 'User not found' });
+    await Donation.deleteMany({ streamer: req.user.username });
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Временный роут удаления пользователя по имени
 app.delete('/api/user/:username', async (req, res) => {
   try {
     const deleted = await User.findOneAndDelete({ username: req.params.username });
@@ -116,62 +122,9 @@ app.delete('/api/user/:username', async (req, res) => {
   }
 });
 
-const { exec } = require('child_process');
-
-// Статус сервисов (проверка, запущены ли)
-app.get('/api/status', (req, res) => {
-  // Проверка бэка (всегда онлайн, если запрос дошёл)
-  const backendStatus = 'online';
-  // Проверка фронта (пинг на порт 5173, но на сервере используй curl)
-  exec('curl -s http://localhost:5173', (err) => {
-    const frontendStatus = err ? 'offline' : 'online';
-    res.json({ backend: backendStatus, frontend: frontendStatus });
-  });
+// Socket.io подключение
+socketIo.on('connection', (socket) => {
+  console.log('Client connected');
 });
 
-// Вкл/выкл (тестово, через shell; осторожно!)
-app.post('/api/control', (req, res) => {
-  const { service, action } = req.body; // service: 'backend' или 'frontend', action: 'start' или 'stop'
-  let cmd;
-  if (service === 'backend') {
-    cmd = action === 'start' ? 'node server.js &' : 'pkill -f "node server.js"'; // & для фона
-  } else if (service === 'frontend') {
-    cmd = action === 'start' ? 'cd frontend && npm run dev -- --host &' : 'pkill -f "vite"';
-  } else {
-    return res.status(400).json({ error: 'Invalid service' });
-  }
-  exec(cmd, (err, stdout, stderr) => {
-    if (err) return res.status(500).json({ error: stderr });
-    res.json({ message: `${service} ${action}ed` });
-  });
-});
-
-// Статус сервисов (проверка, запущены ли)
-app.get('/api/status', (req, res) => {
-  // Проверка бэка (всегда онлайн, если запрос дошёл)
-  const backendStatus = 'online';
-  // Проверка фронта (пинг на порт 5173, но на сервере используй curl)
-  exec('curl -s http://localhost:5173', (err) => {
-    const frontendStatus = err ? 'offline' : 'online';
-    res.json({ backend: backendStatus, frontend: frontendStatus });
-  });
-});
-
-// Вкл/выкл (тестово, через shell; осторожно!)
-app.post('/api/control', (req, res) => {
-  const { service, action } = req.body; // service: 'backend' или 'frontend', action: 'start' или 'stop'
-  let cmd;
-  if (service === 'backend') {
-    cmd = action === 'start' ? 'node server.js &' : 'pkill -f "node server.js"'; // & для фона
-  } else if (service === 'frontend') {
-    cmd = action === 'start' ? 'cd frontend && npm run dev -- --host &' : 'pkill -f "vite"';
-  } else {
-    return res.status(400).json({ error: 'Invalid service' });
-  }
-  exec(cmd, (err, stdout, stderr) => {
-    if (err) return res.status(500).json({ error: stderr });
-    res.json({ message: `${service} ${action}ed` });
-  });
-});
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
