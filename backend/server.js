@@ -6,6 +6,21 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const io = require('socket.io')(server, {
+  cors: { origin: '*' } // Для теста
+});
+
+io.on('connection', (socket) => {
+  console.log('Client connected');
+});
+
+// В роуте добавления доната (/api/donate), после await donation.save():
+io.emit('newDonation', donation); // Отправка события всем клиентам
+
+// Замени app.listen на server.listen:
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = 'd7ae7574ce458242d8167e71db02a043e704ac3e0408f1313047d9d441f4ecb794c657fb3f33323bb0901c56d3a973e150a6ac797c211f18061a81e75aa564ee'; // Замени на свой секрет (генерируй рандомный, например, через онлайн-генератор)
 
@@ -129,7 +144,7 @@ app.post('/api/control', (req, res) => {
     if (err) return res.status(500).json({ error: stderr });
     res.json({ message: `${service} ${action}ed` });
   });
-});const { exec } = require('child_process');
+});
 
 // Статус сервисов (проверка, запущены ли)
 app.get('/api/status', (req, res) => {

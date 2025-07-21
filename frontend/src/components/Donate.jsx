@@ -20,7 +20,12 @@ const Donate = () => {
     const data = await res.json();
     if (res.status === 201) {
       alert('Donation sent!');
-      navigate('/');
+      // Очистка полей вместо navigate
+      setStreamer('');
+      setDonorName('');
+      setAmount('');
+      setCurrency('USD');
+      setMessage('');
     } else {
       alert(data.error || 'Error');
     }
@@ -32,7 +37,7 @@ const Donate = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-white p-8 rounded-xl shadow-2xl w-96"
+        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto"
       >
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Donate</h2>
         <form onSubmit={handleSubmit}>

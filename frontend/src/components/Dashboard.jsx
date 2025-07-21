@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import io from 'socket.io-client';
+
+const socket = io('http://45.144.52.58:5000'); // Подключение к серверу
 
 const Dashboard = () => {
   const [donations, setDonations] = useState([]);
@@ -22,6 +25,15 @@ const Dashboard = () => {
       }
     };
     fetchDonations();
+
+    // Слушатель нового доната
+    socket.on('newDonation', (newDon) => {
+      if (newDon.streamer === localStorage.getItem('username')) { // Только для текущего стримера
+        setDonations((prev) => [newDon, ...prev]);
+      }
+    });
+
+    return () => socket.off('newDonation');
   }, [navigate]);
 
   // Функция удаления пользователя (временная)
