@@ -31,10 +31,10 @@ const Login = () => {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white p-8 rounded-xl shadow-2xl w-96"
+        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto" // max-w-md для ограничения ширины, mx-auto для центрирования
       >
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">{isRegister ? 'Register' : 'Login'}</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="w-full">
           <input
             type="text"
             placeholder="Username"
