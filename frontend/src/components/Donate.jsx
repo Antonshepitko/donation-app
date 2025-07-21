@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const Donate = () => {
   const [streamer, setStreamer] = useState('');
@@ -26,35 +27,40 @@ const Donate = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-6">Donate</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-400 to-blue-500">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-8 rounded-xl shadow-2xl w-96"
+      >
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Donate</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder="Streamer Username"
             value={streamer}
             onChange={(e) => setStreamer(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="text"
             placeholder="Your Name"
             value={donorName}
             onChange={(e) => setDonorName(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="number"
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           >
             <option>USD</option>
             <option>EUR</option>
@@ -64,13 +70,18 @@ const Donate = () => {
             placeholder="Message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
-          <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition"
+          >
             Send Donation
-          </button>
+          </motion.button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

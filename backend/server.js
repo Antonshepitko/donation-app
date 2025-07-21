@@ -89,5 +89,16 @@ app.post('/api/donate', async (req, res) => {
   await donation.save();
   res.status(201).json({ message: 'Donation added' });
 });
+// Временный роут удаления пользователя по имени (незащищённый)
+app.delete('/api/user/:username', async (req, res) => {
+  try {
+    const deleted = await User.findOneAndDelete({ username: req.params.username });
+    if (!deleted) return res.status(404).json({ error: 'User not found' });
+    await Donation.deleteMany({ streamer: req.params.username });
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
