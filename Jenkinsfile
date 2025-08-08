@@ -21,12 +21,14 @@ pipeline {
     }
 
     stage('Stop & Remove Old Container') {
-      steps {
-        sh '''
-          docker stop $CONTAINER_NAME || true
-          docker rm $CONTAINER_NAME || true
-        '''
-      }
+        steps {
+            sh '''
+            if [ "$(docker ps -a -q -f name=donation-backend)" ]; then
+                docker stop donation-backend
+                docker rm donation-backend
+            fi
+            '''
+        }
     }
 
     stage('Run New Container') {
