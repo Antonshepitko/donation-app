@@ -34,7 +34,10 @@ pipeline {
     stage('Run New Container') {
       steps {
         sh '''
-          docker run -d --name $CONTAINER_NAME \
+        if ! docker network ls --format '{{.Name}}' | grep -w donation-net > /dev/null; then
+            docker network create donation-net
+        fi
+        docker run -d --name $CONTAINER_NAME \
             --network donation-net \
             -p 5000:5000 \
             $IMAGE_NAME
