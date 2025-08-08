@@ -9,7 +9,8 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        git 'git@github.com:Antonshepitko/donation-app.git'
+        git credentialsId: 'github-creds',
+            url: 'git@github.com:Antonshepitko/donation-app.git'
       }
     }
 
