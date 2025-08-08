@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        git 'https://github.com/ТВОЙ_АККАУНТ/donation-backend.git'
+        git 'git@github.com:Antonshepitko/donation-app.git'
       }
     }
 
