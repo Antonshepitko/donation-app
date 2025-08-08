@@ -1,10 +1,12 @@
+// middleware/auth.go
 package middleware
 
 import (
-	"donation-backend/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+
+	"donation-backend/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -15,9 +17,9 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		token := strings.TrimPrefix(auth, "Bearer ")
-		username, err := utils.ParseToken(token)
-		if err != nil {
+		raw := strings.TrimPrefix(auth, "Bearer ")
+		username, err := utils.ParseJWT(raw) // ← было ParseToken
+		if err != nil || username == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
