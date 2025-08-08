@@ -1,41 +1,32 @@
 package routes
 
 import (
-	"donation-backend/models"
-	"encoding/json"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"net/http"
 )
 
-var clients = make(map[*websocket.Conn]bool)
 var upgrader = websocket.Upgrader{
+	// На тесте разрешаем все источники. Для продакшена
+	// лучше указать явные Origin'ы.
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func RegisterWebSocketRoute(r *gin.Engine) {
-	r.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			return
-		}
-		defer conn.Close()
-		clients[conn] = true
+// WebSocketHandler — минимальный WS-обработчик.
+// Держит соединение открытым, пока клиент не закроет его.
+func WebSocketHandler(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		// апгрейд не удался — просто выходим
+		return
+	}
+	defer conn.Close()
 
-		// WebSocket живёт, просто ждёт
-		for {
-			if _, _, err := conn.NextReader(); err != nil {
-				delete(clients, conn)
-				break
-			}
-		}
-	})
-
-	// Функция для пуша новых донатов всем клиентам
-	WebSocketBroadcast = func(donation models.Donation) {
-		jsonMsg, _ := json.Marshal(donation)
-		for conn := range clients {
-			conn.WriteMessage(websocket.TextMessage, jsonMsg)
+	// Читаем, пока клиент не отвалится. Ничего не рассылаем.
+	for {
+		if _, _, err := conn.NextReader(); err != nil {
+			break
 		}
 	}
 }
