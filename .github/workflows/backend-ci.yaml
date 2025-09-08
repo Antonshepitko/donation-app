@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  IMAGE: ${{ toLower(secrets.DOCKER_USERNAME) }}/donation-backend
+  IMAGE: ${{ secrets.DOCKER_USERNAME }}/donation-backend
 
 jobs:
   build_push_and_bump:
