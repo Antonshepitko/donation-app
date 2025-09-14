@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+) 
+
 
 type Donation struct {
 	Streamer  string    `json:"streamer" bson:"streamer"`
